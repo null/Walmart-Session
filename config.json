@@ -1,0 +1,12 @@
+{
+    "walmart_login_information": {
+        "email": "walmart login email"
+    },
+    
+    "mail_login_information":{
+        "server": "server address here",
+        "port": "server port here - as integer",
+        "username": "mail username",
+        "password": "mail password"
+    }
+}
