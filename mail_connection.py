@@ -60,7 +60,7 @@ class MailConnection:
         
         return False
 
-    def fetch_otp(self, max_attempts: int = 7) -> tuple[str, list] | None:
+    def fetch_otp(self, max_attempts: int = 7) -> str | None:
         for attempt in range(max_attempts):
             try:
                 self.mail_server.select("INBOX")
@@ -105,15 +105,14 @@ class MailConnection:
                                 return code.strip()
 
                 if attempt < max_attempts - 1:
-                    sleep(7.5)
+                    sleep(5)
                     continue
                 
                 return None
                 
             except:                
                 if attempt < max_attempts - 1:
-                    sleep(7.5)
+                    sleep(5)
                     continue
-
 
         return None
