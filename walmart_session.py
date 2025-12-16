@@ -290,7 +290,7 @@ class WalmartSession:
                 headers=headers,
                 json=self.base_payload
             )
-            
+
             if response.status_code == 200:
                 self.auth_code: str = response.json()["data"]["signInWithOTP"]["authCode"]["authCode"]
                 return True
@@ -321,12 +321,37 @@ class WalmartSession:
                 "rm": "true"
             }
             
-            headers = {
-                "Referer": "https://identity.walmart.com/",
-                "Sec-Fetch-Site": "same-site",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-Dest": "document"
-            }
+            headers = self.base_headers.copy()
+            headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
+            headers["Accept-Language"] = "en-US,en;q=0.7"
+            headers["Priority"] = "u=0, i"
+            headers["Referer"] = "https://identity.walmart.com/"
+            headers["Sec-Fetch-Dest"] = "document"
+            headers["Sec-Fetch-Mode"] = "navigate"
+            headers["Sec-Fetch-Site"] = "same-site"
+            headers["Sec-Fetch-User"] = "?1"
+            headers["Upgrade-Insecure-Requests"] = "1"
+
+            headers.pop("Content-Type", None)
+            headers.pop("Content-Length", None)
+            headers.pop("Device_profile_ref_id", None)
+            headers.pop("Origin", None)
+            headers.pop("Tenant-Id", None)
+            headers.pop("Traceparent", None)
+            headers.pop("Wm_mp", None)
+            headers.pop("Wm_page_url", None)
+            headers.pop("Wm_qos.Correlation_Id", None)
+            headers.pop("X-Apollo-Operation-Name", None)
+            headers.pop("X-Enable-Server-Timing", None)
+            headers.pop("X-Latency-Trace", None)
+            headers.pop("X-O-Bu", None)
+            headers.pop("X-O-Ccm", None)
+            headers.pop("X-O-Correlation-Id", None)
+            headers.pop("X-O-Gql-Query", None)
+            headers.pop("X-O-Mart", None)
+            headers.pop("X-O-Platform", None)
+            headers.pop("X-O-Platform-Version", None)
+            headers.pop("X-O-Segment", None)
             
             response: Response = self.session.get(
                 "https://www.walmart.com/account/verifyToken",
@@ -346,7 +371,9 @@ class WalmartSession:
 
     def get_account_webpage(self) -> bool:
         try:
-            response = self.session.get("https://www.walmart.com/account")
+            response = self.session.get(
+                "https://www.walmart.com/account"
+            )
 
             if response.status_code == 200:
                 if self.extract_autenticated_oauth_params(response.text):
@@ -389,7 +416,7 @@ class WalmartSession:
             )
 
             if response.status_code == 200:
-                print(f"Logged In As: {response.json()["data"]["account"]["profile"]["firstName"]}")
+                print(f"Logged In As: {response.json()['data']['account']['profile']['firstName']}")
                 return True
 
             raise Exception()
@@ -404,14 +431,12 @@ class WalmartSession:
         self.get_login_page()
         self.generate_otp()
 
-        items: str = mail_connection.MailConnection(self.server, self.port, self.username, self.password).fetch_otp()
-        self.logs = items[1]
-        self.submit_otp(items[0])
+        code: str = mail_connection.MailConnection(self.server, self.port, self.username, self.password).fetch_otp()
+        self.submit_otp(code)
         self.verify_token()
         self.get_account_webpage()
         self.display_name()
 
         return self.session
-
 
 auth = WalmartSession()
