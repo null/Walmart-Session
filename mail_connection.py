@@ -7,19 +7,12 @@ from re import search
 import user_interface
 
 class MailConnection:
-    def __init__(self, ui: user_interface.UI, logs: list, server: str, port: int, username: str, password: str) -> None:
-
+    def __init__(self, server: str, port: int, username: str, password: str) -> None:
         self.emails: list = []
-        self.logs: list = logs
         self.otp: str = ""
-        self.ui = ui
 
         self.mail_server = IMAP4_SSL(server, port)
         self.connect_to_server(username, password)
-
-    def print_ui(self, log) -> None:
-        self.logs.append(log)
-        self.ui.ui_str(self.logs)
 
     def decode_mime(self, string: str) -> str | None:
         if string is None:
@@ -44,11 +37,10 @@ class MailConnection:
     def connect_to_server(self, username: str, password: str) -> bool:
         try:
             self.mail_server.login(username, password)
-            self.print_ui(f"[+] mail.riseup.net:993 | connect_to_server | Type: IMAP")
             return True
 
-        except Exception as error:
-            self.print_ui(f"[!] mail.riseup.net:993 | connect_to_server | Type: IMAP | {error}")
+        except:
+            pass
 
         return False
 
@@ -61,12 +53,10 @@ class MailConnection:
             if result[0] == "OK":
                 self.mail_server.store(str(email_id), "+FLAGS", "\\Deleted")
                 self.mail_server.expunge()
-                
-                self.print_ui(f"[+] mail.riseup.net:993 | move_to_trash | Type: IMAP | ID: {email_id}, Code: {code}")
                 return True
                 
-        except Exception as error:
-            self.print_ui(f"[!] mail.riseup.net:993 | move_to_trash | Type: IMAP | {error}")
+        except:
+            pass
         
         return False
 
@@ -112,19 +102,18 @@ class MailConnection:
                                 code = code_match.group(1)
                                 email_id = email_info["id"]
                                 self.move_to_trash(email_id, code)
-                                return (code.strip(), self.logs)
+                                return code.strip()
 
                 if attempt < max_attempts - 1:
                     sleep(7.5)
                     continue
                 
-                return (None, self.logs)
+                return None
                 
-            except Exception as error:
-                self.print_ui(f"[!] mail.riseup.net:993 | fetch_otp | Type: IMAP | {error}")
-                
+            except:                
                 if attempt < max_attempts - 1:
                     sleep(7.5)
                     continue
 
-        return (None, self.logs)
+
+        return None
