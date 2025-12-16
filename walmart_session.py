@@ -9,7 +9,6 @@ from random import choice
 from re import search
 
 import mail_connection
-import user_interface
 
 class WalmartSession:
     def __init__(self) -> None:
@@ -23,7 +22,6 @@ class WalmartSession:
         self.password: str = config["mail_login_information"]["password"]
         self.code_challenge = None
         self.code_verifier = None
-        self.logs: list = []
 
         self.session: Session = Session()
         self.session.headers.update({
@@ -116,7 +114,6 @@ class WalmartSession:
         self.trace_id = None
 
         self.auth_code = None
-        self.ui = user_interface.UI(self.email, False, "https://www.walmart.com/")
         self.walmart_session: Session = self.login()
         
     @staticmethod
@@ -130,10 +127,6 @@ class WalmartSession:
     @staticmethod
     def generate_traceparent() -> str:
         return f"00-{token_hex(16)}-{token_hex(8)}-00"
-
-    def print_ui(self, log: str, logged_in: bool = False) -> None:
-        self.logs.append(log)
-        self.ui.ui_str(self.logs, logged_in)
     
     def generate_pkce_pair(self) -> None:
         self.code_verifier = urlsafe_b64encode(token_bytes(32)).decode("utf-8").rstrip("=")
@@ -161,7 +154,7 @@ class WalmartSession:
 
                 raise Exception()
 
-            except Exception as error:
+            except:
                 pass
         
         return False
@@ -189,8 +182,8 @@ class WalmartSession:
 
             raise Exception()
 
-        except Exception as error:
-                pass
+        except:
+            pass
 
         return False
 
@@ -203,14 +196,13 @@ class WalmartSession:
             if response.status_code == 200:
                 if not self.extract_oauth_params(response.text):
                     exit()
-
-                self.print_ui(f"[+] https://www.walmart.com/ | Status Code: {response.status_code} | Type: GET")
+                    
                 return True
 
             raise Exception()
 
-        except Exception as error:
-            self.print_ui(f"[!] https://www.walmart.com/ | Type: GET | {error}")
+        except:
+            pass
 
         return False
         
@@ -243,13 +235,12 @@ class WalmartSession:
             )
 
             if response.status_code == 200:
-                self.print_ui(f"[+] https://identity.walmart.com/account/login | Status Code: {response.status_code} | Type: GET")
                 return True
 
             raise Exception()
 
-        except Exception as error:
-            self.print_ui(f"[!] https://identity.walmart.com/account/login | Type: GET | {error}")
+        except:
+            pass
 
         return False
 
@@ -271,13 +262,12 @@ class WalmartSession:
             )
 
             if response.status_code == 200:
-                self.print_ui(f"[+] https://identity.walmart.com/orchestra/idp/graphql | Status Code: {response.status_code} | Type: POST")
                 return True
 
             raise Exception()
 
-        except Exception as error:
-            self.print_ui(f"[!] https://identity.walmart.com/orchestra/idp/graphql | Type: POST | {error}")
+        except:
+            pass
 
         return False
 
@@ -303,13 +293,12 @@ class WalmartSession:
             
             if response.status_code == 200:
                 self.auth_code: str = response.json()["data"]["signInWithOTP"]["authCode"]["authCode"]
-                self.print_ui(f"[+] https://identity.walmart.com/orchestra/idp/graphql | Status Code: {getattr(response, 'status_code', 'null')} | Type: POST")
                 return True
 
             raise Exception()
 
-        except Exception as error:
-            self.print_ui(f"[!] https://identity.walmart.com/orchestra/idp/graphql | Type: POST | {error}")
+        except:
+            pass
 
         return False
     
@@ -346,13 +335,12 @@ class WalmartSession:
             )
 
             if response.status_code == 200:
-                self.print_ui(f"[+] https://www.walmart.com/account/verifyToken | Status Code: {response.status_code} | Type: GET")
                 return True
 
             raise Exception()
                 
-        except Exception as error:
-            self.print_ui(f"[!] https://www.walmart.com/account/verifyToken | Type: GET | {error}")
+        except:
+            pass
 
         return False
 
@@ -362,13 +350,12 @@ class WalmartSession:
 
             if response.status_code == 200:
                 if self.extract_autenticated_oauth_params(response.text):
-                    self.print_ui(f"[+] https://www.walmart.com/account | Status Code: {response.status_code} | Type: GET")
                     return True
 
             raise Exception()
 
-        except Exception as error:
-            self.print_ui(f"[!] https://www.walmart.com/account/ | Type: GET | {error}")
+        except:
+            pass
 
         return False
 
@@ -402,46 +389,13 @@ class WalmartSession:
             )
 
             if response.status_code == 200:
-                self.ui.set_name(response.json()["data"]["account"]["profile"]["firstName"])
-                self.print_ui(f"[+] https://www.walmart.com/orchestra/home/graphql/accountLandingPage/781bca8419fd5b5e7a88ff6690e3ce97007469afd2c59b79b44d599218eb4d4d | Status Code: {response.status_code} | Type: GET", True)
+                print(f"Logged In As: {response.json()["data"]["account"]["profile"]["firstName"]}")
                 return True
 
             raise Exception()
 
-        except Exception as error:
-            self.print_ui(f"[!] https://www.walmart.com/orchestra/home/graphql/accountLandingPage/781bca8419fd5b5e7a88ff6690e3ce97007469afd2c59b79b44d599218eb4d4d | Type: GET | {error}")
-
-        return False
-
-    def get_shipping_address(self) -> bool:
-        try:
-            variables = quote(dumps({
-                "fetchBusinessNameField": False,
-                "enableGEPKYC": False
-            }))
-            
-            headers = self.base_headers.copy()
-            headers["Baggage"] = f"trafficType=customer,deviceType=desktop,renderScope=CSR,webRequestSource=Browser,pageName=account,isomorphicSessionId={self.isomorphic_session_id},renderViewId={self.render_view_id}"
-            headers["Referer"] = "https://www.walmart.com/account/delivery-addresses"
-            headers["Wm_page_url"] = "https://www.walmart.com/account/delivery-addresses"
-            headers["Wm-Client-Traceid"] = token_hex(16)
-            headers["X-Apollo-Operation-Name"] = "GetAddresses"
-            headers["X-O-Gql-Query"] = "query GetAddresses"
-            
-            response: Response = self.session.get(
-                f"https://www.walmart.com/orchestra/home/graphql/GetAddresses/380113c1287d8fa8d4465f848469263ac473d489f81d140cc90d090c90f1d1ad?variables={variables}",
-                headers=headers
-            )
-
-            if response.status_code == 200:
-                self.ui.set_shipping_address(f"{response.json()['data']['deliveryAddresses'][0]['addressLineOne']}, {response.json()['data']['deliveryAddresses'][0]['city']}, {response.json()['data']['deliveryAddresses'][0]['state']} {response.json()['data']['deliveryAddresses'][0]['postalCode']}")
-                self.print_ui(f"[+] https://www.walmart.com/orchestra/home/graphql/accountLandingPage/781bca8419fd5b5e7a88ff6690e3ce97007469afd2c59b79b44d599218eb4d4d | Status Code: {response.status_code} | Type: GET", True)
-                return True
-
-            raise Exception()
-
-        except Exception as error:
-            self.print_ui(f"[!] https://www.walmart.com/orchestra/home/graphql/accountLandingPage/781bca8419fd5b5e7a88ff6690e3ce97007469afd2c59b79b44d599218eb4d4d | Type: GET | {error}")
+        except:
+            pass
 
         return False
 
@@ -450,14 +404,14 @@ class WalmartSession:
         self.get_login_page()
         self.generate_otp()
 
-        items: str = mail_connection.MailConnection(self.ui, self.logs, self.server, self.port, self.username, self.password).fetch_otp()
+        items: str = mail_connection.MailConnection(self.server, self.port, self.username, self.password).fetch_otp()
         self.logs = items[1]
         self.submit_otp(items[0])
         self.verify_token()
         self.get_account_webpage()
         self.display_name()
-        self.get_shipping_address()
 
         return self.session
+
 
 auth = WalmartSession()
