@@ -438,5 +438,3 @@ class WalmartSession:
         self.display_name()
 
         return self.session
-
-auth = WalmartSession()
