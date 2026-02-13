@@ -431,10 +431,10 @@ class WalmartSession:
         self.get_login_page()
         self.generate_otp()
 
-        code: str = mail_connection.MailConnection(self.server, self.port, self.username, self.password).fetch_otp()
-        self.submit_otp(code)
+        self.submit_otp(mail_connection.MailConnection(self.server, self.port, self.username, self.password).fetch_otp())
         self.verify_token()
         self.get_account_webpage()
         self.display_name()
 
         return self.session
+
