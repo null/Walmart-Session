@@ -1,0 +1,24 @@
+{
+	"get_login_page": {
+	    "client_id": null,
+	    "redirect_uri": null,
+	    "scope": null,
+	    "tenant_id": null,
+	    "state": "/",
+	    "code_challenge": null
+	},
+
+	"verify_token": {
+        "state": "/",
+        "client_id": null,
+        "redirect_uri": null,
+        "scope": null,
+        "code": null,
+        "action": "SignIn",
+        "rm": "true"
+    },
+
+	"display_name": {
+		"variables": "{\"isCashiLinked\": false, \"enableCountryCallingCode\": false, \"enablePhoneCollection\": false, \"enableMembershipId\": false, \"enableMembershipAutoRenew\": false, \"enableMembershipQuery\": true, \"enableWcp\": false, \"enableMembershipAutoRenewalModal\": false, \"includeResidencyRegionInfo\": false, \"sessionInput\": {}, \"includeSessionInfo\": false}"
+	}
+}
