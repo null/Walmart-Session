@@ -42,7 +42,7 @@ class MailConnection:
 
         return False
 
-    def move_to_trash(self, email_id: str, code: str) -> bool:
+    def move_to_trash(self, email_id: str) -> bool:
         try:
             self.mail_server.select("INBOX")
 
@@ -99,7 +99,7 @@ class MailConnection:
                             if code_match:
                                 code = code_match.group(1)
                                 email_id = email_info["id"]
-                                self.move_to_trash(email_id, code)
+                                self.move_to_trash(email_id)
                                 return code.strip()
 
                 if attempt < max_attempts - 1:
