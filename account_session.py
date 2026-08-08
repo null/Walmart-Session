@@ -95,7 +95,7 @@ class WalmartAccountSession:
 
         return False
 
-    def extract_autenticated_oauth_params(self, html_content: str) -> bool:
+    def extract_authenticated_oauth_params(self, html_content: str) -> bool:
         try:
             isomorphic_match: Match = search(r'"isomorphicSessionId"\s*:\s*"([a-zA-Z0-9_-]+)"', html_content)
             if isomorphic_match:
@@ -242,7 +242,7 @@ class WalmartAccountSession:
             )
 
             if response.status_code == 200:
-                self.extract_autenticated_oauth_params(response.text)
+                self.extract_authenticated_oauth_params(response.text)
                 self.display_name()
 
         except:
